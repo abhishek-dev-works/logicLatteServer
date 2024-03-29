@@ -13,6 +13,6 @@ const get = async() => {
     console.log(result)
 }
 
-//get();
+get();
 
 module.exports = pool;
