@@ -31,7 +31,7 @@ exports.getUserById = async (req, res) => {
       user: user,
     });
   } catch (err) {
-    console.error("Error getting a user:", err);
+    console.error("Error getting a user :", err);
     res.status(500).json({ error: "Error getting a user" });
   }
 };
