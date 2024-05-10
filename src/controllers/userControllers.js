@@ -1,58 +1,75 @@
 const db = require("../db");
+const User = require("../models/user");
+const { v4: uuidv4 } = require("uuid");
 
 // Get all users
 exports.getAllUsers = async (req, res) => {
   try {
-    const [rows, fields] = await db.query("SELECT * FROM users");
-    res.json(rows);
+    const allUsers = await User.find({});
+    res.status(200).json({
+      users: allUsers,
+    });
   } catch (err) {
-    console.error("Error getting users:", err);
-    res.status(500).json({ error: "Error getting users" });
+    console.log("Error getting all users: ", err);
+    res.status(500).json({
+      message: "Failed to fetch all the users",
+    });
   }
 };
 
 // Get a single user by ID
 exports.getUserById = async (req, res) => {
-  const { id } = req.params;
   try {
-    const [rows, fields] = await db.query(
-      "SELECT * FROM users WHERE user_id = ?",
-      [id]
-    );
-    if (rows.length === 0) {
-      res.status(404).json({ error: "User not found" });
-    } else {
-      res.json(rows[0]);
+    const { id } = req.params;
+    const user = await User.findOne({ user_id: id });
+    if (!user) {
+      res.status(404).json({
+        message: "User not found",
+      });
     }
+    res.status(200).json({
+      user: user,
+    });
   } catch (err) {
-    console.error("Error getting user:", err);
-    res.status(500).json({ error: "Error getting user" });
+    console.error("Error getting a user:", err);
+    res.status(500).json({ error: "Error getting a user" });
   }
 };
 
-// Create a new user
 exports.createUser = async (req, res) => {
-  const { username, email, password, full_name, bio, gender, profile_picture } =
-    req.body;
+  const { username, email, password, full_name, bio, gender } = req.body;
   try {
-    const date = new Date();
-    const [result] = await db.query(
-      `INSERT INTO users 
-      (username, email, password, full_name, bio, gender, profile_picture, created_at, updated_at) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        username,
-        email,
-        password,
-        full_name,
-        bio,
-        gender,
-        profile_picture,
-        date,
-        date,
-      ]
-    );
-    res.status(201).json({ id: result.insertId, username, email });
+    if (!email || !username || !full_name || !password) {
+      res.status(400).json({
+        message: "Fill all the fields",
+      });
+    }
+
+    const existingUser = await User.findOne({ username: username });
+    const foundEmail = await User.findOne({ email: email });
+
+    if (existingUser || foundEmail) {
+      res.status(400).json({
+        message: "User already exists!!",
+      });
+    }
+
+    const lowerEmail = email.toLowerCase();
+
+    const newUser = User({
+      user_id: uuidv4(),
+      email: lowerEmail,
+      username,
+      password,
+      full_name,
+      gender,
+      bio,
+    });
+
+    await newUser.save();
+    res.status(200).json({
+      message: "User Created!!",
+    });
   } catch (err) {
     console.error("Error creating user:", err);
     res.status(500).json({ error: "Error creating user" });
@@ -85,6 +102,34 @@ exports.updateUser = async (req, res) => {
     } else {
       res.status(200).json({ message: "User updated successfully" });
     }
+  } catch (err) {
+    console.error("Error updating user:", err);
+    res.status(500).json({ error: "Error updating user" });
+  }
+};
+
+// Update a user by ID
+exports.updateUser = async (req, res) => {
+  const { id } = req.params;
+  const { username, email, password, full_name, gender, bio } = req.body;
+  try {
+    const nonExistingUser = User.findOne({ user_id: id });
+
+    if (!nonExistingUser) {
+      res.status(400).json({
+        message: "User does not exist",
+      });
+    }
+    const updatedUser = await User.findByIdAndUpdate(
+      { _id: id },
+      { username, email, password, full_name, gender, bio },
+      { new: true }
+    );
+
+    res.status(200).json({
+      message: "User updated, successfully",
+      updatedUser: updatedUser,
+    });
   } catch (err) {
     console.error("Error updating user:", err);
     res.status(500).json({ error: "Error updating user" });
