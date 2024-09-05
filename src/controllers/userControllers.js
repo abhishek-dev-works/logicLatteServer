@@ -37,7 +37,7 @@ exports.getUserById = async (req, res) => {
 };
 
 exports.createUser = async (req, res) => {
-  const { username, email, password, full_name, bio, gender } = req.body;
+  const { username, email, password, full_name, bio, gender, location } = req.body;
   try {
     if (!email || !username || !full_name || !password) {
       res.status(400).json({
@@ -64,6 +64,7 @@ exports.createUser = async (req, res) => {
       full_name,
       gender,
       bio,
+      location,
     });
 
     await newUser.save();
@@ -77,36 +78,36 @@ exports.createUser = async (req, res) => {
 };
 
 // Update a user by ID
-exports.updateUser = async (req, res) => {
-  const { id } = req.params;
-  const { username, email, password, full_name, bio, gender, profile_picture } =
-    req.body;
-  try {
-    const date = new Date();
-    const [result] = await db.query(
-      `UPDATE users SET username = ?, email = ?, password = ?, full_name = ?, bio = ?, gender = ? , profile_picture = ?, updated_at = ?  WHERE user_id = ?`,
-      [
-        username,
-        email,
-        password,
-        full_name,
-        bio,
-        gender,
-        profile_picture,
-        date,
-        id,
-      ]
-    );
-    if (result.affectedRows === 0) {
-      res.status(404).json({ error: "User not found" });
-    } else {
-      res.status(200).json({ message: "User updated successfully" });
-    }
-  } catch (err) {
-    console.error("Error updating user:", err);
-    res.status(500).json({ error: "Error updating user" });
-  }
-};
+// exports.updateUser = async (req, res) => {
+//   const { id } = req.params;
+//   const { username, email, password, full_name, bio, gender, profile_picture } =
+//     req.body;
+//   try {
+//     const date = new Date();
+//     const [result] = await db.query(
+//       `UPDATE users SET username = ?, email = ?, password = ?, full_name = ?, bio = ?, gender = ? , profile_picture = ?, updated_at = ?  WHERE user_id = ?`,
+//       [
+//         username,
+//         email,
+//         password,
+//         full_name,
+//         bio,
+//         gender,
+//         profile_picture,
+//         date,
+//         id,
+//       ]
+//     );
+//     if (result.affectedRows === 0) {
+//       res.status(404).json({ error: "User not found" });
+//     } else {
+//       res.status(200).json({ message: "User updated successfully" });
+//     }
+//   } catch (err) {
+//     console.error("Error updating user:", err);
+//     res.status(500).json({ error: "Error updating user" });
+//   }
+// };
 
 // Update a user by ID
 exports.updateUser = async (req, res) => {
@@ -137,39 +138,39 @@ exports.updateUser = async (req, res) => {
 };
 
 // Delete a user by ID
-exports.deleteUser = async (req, res) => {
-  const { id } = req.params;
-  try {
-    const [result] = await db.query("DELETE FROM users WHERE user_id = ?", [
-      id,
-    ]);
-    if (result.affectedRows === 0) {
-      res.status(404).json({ error: "User not found" });
-    } else {
-      res.status(200).json({ message: "User deleted successfully" });
-    }
-  } catch (err) {
-    console.error("Error deleting user:", err);
-    res.status(500).json({ error: "Error deleting user" });
-  }
-};
+// exports.deleteUser = async (req, res) => {
+//   const { id } = req.params;
+//   try {
+//     const [result] = await db.query("DELETE FROM users WHERE user_id = ?", [
+//       id,
+//     ]);
+//     if (result.affectedRows === 0) {
+//       res.status(404).json({ error: "User not found" });
+//     } else {
+//       res.status(200).json({ message: "User deleted successfully" });
+//     }
+//   } catch (err) {
+//     console.error("Error deleting user:", err);
+//     res.status(500).json({ error: "Error deleting user" });
+//   }
+// };
 
 exports.Authenticate = async (req, res) => {
-  console.log(req, res);
   const { email, password } = req.body;
+
   try {
-    const [rows, fields] = await db.query(
-      "Select * from users where email =? and password = ?",
-      [email, password]
-    );
-    if (rows.length > 0) {
-      console.log(rows);
-      res.status(200).json({ message: "Authentication Successfull" });
+    // Find the user by email and password
+    const user = await User.findOne({ email, password });
+
+    if (user) {
+      console.log(user);
+      return res.status(200).json({ message: "Authentication Successful" });
     } else {
-      res.status(400).json({ error: "Incorrect email or password" });
+      return res.status(400).json({ error: "Incorrect email or password" });
     }
   } catch (err) {
     console.error("Error Authenticating user:", err);
-    res.status(500).json({ error: "Internal Server error" });
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
