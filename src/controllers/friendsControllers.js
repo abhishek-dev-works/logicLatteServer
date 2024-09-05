@@ -1,31 +1,38 @@
-const db = require("../db");
+const Friend = require("../models/friend");
+const User = require("../models/user");
 
 // Endpoint to add a friend
 exports.addFriend = async (req, res) => {
-  const { user1_id, user2_id } = req.body;
+  const { user_id, friend_id } = req.body;
   try {
-    const [rows, fields] = await db.query(
-      `INSERT INTO friends (user1_id, user2_id) VALUES (?,?)`,
-      [user1_id, user2_id]
-    );
+    // Create friendship record
+    const friend = new Friend({ user_id, friend_id });
+    await friend.save();
+
+    // Optionally create a reciprocal friendship record if needed
+    const reciprocalFriend = new Friend({ user_id: friend_id, friend_id: user_id });
+    await reciprocalFriend.save();
+
     res.status(200).json({ message: "Friend added successfully" });
   } catch (err) {
-    console.log("Failed to add friend", err);
+    console.error("Failed to add friend", err);
     res.status(500).json({ error: "Failed to add friend" });
   }
 };
 
 // Endpoint to remove a friend
 exports.removeFriend = async (req, res) => {
-  const { user1_id, user2_id } = req.body;
+  const { user_id, friend_id } = req.body;
   try {
-    const [rows, fields] = await db.query(
-      `DELETE FROM friends WHERE user1_id = ? AND user2_id = ?`,
-      [user1_id, user2_id]
-    );
+    // Remove friendship record
+    await Friend.deleteOne({ user_id, friend_id });
+
+    // Optionally remove the reciprocal friendship record
+    await Friend.deleteOne({ user_id: friend_id, friend_id: user_id });
+
     res.status(200).json({ message: "Friend removed successfully" });
   } catch (err) {
-    console.log("Failed to remove friend", err);
+    console.error("Failed to remove friend", err);
     res.status(500).json({ error: "Failed to remove friend" });
   }
 };
@@ -34,13 +41,12 @@ exports.removeFriend = async (req, res) => {
 exports.getFriendsByUserId = async (req, res) => {
   const { user_id } = req.params;
   try {
-    const [rows, fields] = await db.query(
-      `SELECT * FROM friends WHERE user1_id = ? OR user2_id = ?`,
-      [user_id, user_id]
-    );
-    res.status(200).json({ results: rows });
+    const friends = await Friend.find({ user_id });
+    const users = await User.find({ user_id: { $in: friends.map(friend => friend.friend_id) } });
+
+    res.status(200).json({ results: {friends: users} });
   } catch (err) {
-    console.log("Failed to get friends", err);
+    console.error("Failed to get friends", err);
     res.status(500).json({ error: "Failed to get friends" });
   }
 };
