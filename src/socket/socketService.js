@@ -1,4 +1,4 @@
-const Message = require('./models/messageModel'); // Message schema
+const Message = require('../models/message'); // Message schema
 let io;
 const users = {}; // To keep track of connected users
 
