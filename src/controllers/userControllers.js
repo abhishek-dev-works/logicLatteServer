@@ -164,7 +164,7 @@ exports.Authenticate = async (req, res) => {
 
     if (user) {
       console.log(user);
-      return res.status(200).json({ message: "Authentication Successful" });
+      return res.status(200).json({ message: "Authentication Successful", data: user });
     } else {
       return res.status(400).json({ error: "Incorrect email or password" });
     }
