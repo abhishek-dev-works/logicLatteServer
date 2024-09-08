@@ -1,14 +1,17 @@
-// Like Model
-class Like {
-    constructor(like_id, user_id, post_id, comment_id, liked, updated_at) {
-      this.like_id = like_id;
-      this.user_id = user_id;
-      this.post_id = post_id;
-      this.comment_id = comment_id;
-      this.liked = liked;
-      this.updated_at = updated_at;
-    }
-  }
-  
-  module.exports = Like;
-  
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
+
+const likeSchema = new Schema({
+  post_id: {
+    type: Schema.Types.ObjectId,
+    ref: 'Post', // Reference to the Post model
+    required: true,
+  },
+  user_id: {
+    type: Schema.Types.ObjectId,
+    ref: 'User', // Reference to the User model
+    required: true,
+  },
+}, { timestamps: true });
+
+module.exports = mongoose.model('Like', likeSchema);
