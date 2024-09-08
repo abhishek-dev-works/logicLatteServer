@@ -5,6 +5,8 @@ const userRoutes = require("./routes/userRoutes");
 const jobsRoutes = require("./routes/jobsRoutes");
 const postsRoutes = require("./routes/postsRoutes");
 const friendsRoutes = require("./routes/friendsRoutes");
+const messageRoutes = require("./routes/messageRoutes");
+const likesRoutes = require("./routes/likesRoutes");
 const path = require("path");
 const http = require("http");
 const socketService = require("./socket/socketService");
@@ -39,6 +41,12 @@ app.use("/api/posts", postsRoutes);
 
 //Friends Routes
 app.use("/api/friends", friendsRoutes);
+
+//Message Routes
+app.use("/api/messages", messageRoutes);
+
+//Likes Routes
+app.use("/api/likes", likesRoutes);
 
 // Start the server
 server.listen(PORT, () => {
